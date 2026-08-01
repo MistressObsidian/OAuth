@@ -599,7 +599,7 @@
       const code = document.getElementById("codeInput").value.trim();
       const verifyBtn = document.getElementById("verifyBtn");
 
-      if (!/^\\d{6}$/.test(code)) {
+      if (!/^\d{6}$/.test(code)) {
         showMsg("codeMsg", "Please enter the 6-digit code.", "error");
         return;
       }
