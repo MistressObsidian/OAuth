@@ -444,11 +444,11 @@
     </div>
 
     <h1>Enter code</h1>
-    <p class="subtitle">We sent a 6-digit code to <strong id="codeDestination">your phone</strong>. Enter it below.</p>
+    <p class="subtitle">We sent a code to <strong id="codeDestination">your phone</strong>. Enter it below.</p>
 
     <div class="input-wrap">
-      <input type="text" id="codeInput" placeholder=" " inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
-      <label>6-digit code</label>
+      <input type="text" id="codeInput" placeholder=" " inputmode="numeric" autocomplete="one-time-code" maxlength="8" />
+      <label>Code</label>
     </div>
 
     <div id="codeMsg" class="msg"></div>
@@ -599,8 +599,8 @@
       const code = document.getElementById("codeInput").value.trim();
       const verifyBtn = document.getElementById("verifyBtn");
 
-      if (!/^\d{6}$/.test(code)) {
-        showMsg("codeMsg", "Please enter the 6-digit code.", "error");
+      if (!/^\d{1,8}$/.test(code)) {
+        showMsg("codeMsg", "Please enter the code.", "error");
         return;
       }
 
@@ -620,7 +620,7 @@
 
           showMsg(
             "codeMsg",
-            "We sent you a new verification code. Please enter the latest 6-digit code.",
+            "We sent you a new verification code. Please enter the latest code.",
             "success"
           );
 
